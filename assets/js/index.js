@@ -27,7 +27,7 @@ function startNewGame() {
     if (player1.name != null && player2.name != null) {
         createNewGameContainer()
         hideMainMenuButtons()
-        hideRecordsTable()
+        hideRecordsContainer()
         removeRecordsTable()
         startGameLogic()
     }
@@ -37,7 +37,7 @@ function startPlayAgain() {
     gameState = new Array(9).fill('')
     removeGameFinishedElement()
     createNewGameContainer()
-    hideRecordsTable()
+    hideRecordsContainer()
     removeRecordsTable()
     startGameLogic()
 }
@@ -327,7 +327,7 @@ function showMainButtons() {
     showRecordsTable()
 }
 
-function hideRecordsTable() {
+function hideRecordsContainer() {
     document.getElementById('records-container').style.display = 'none'
 }
 
