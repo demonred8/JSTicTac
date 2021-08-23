@@ -26,7 +26,7 @@ function startNewGame() {
 
     if (player1.name != null && player2.name != null) {
         createNewGameContainer()
-        hideMainButtons()
+        hideMainMenuButtons()
         hideRecordsTable()
         removeRecordsTable()
         startGameLogic()
@@ -258,25 +258,10 @@ function removeGameContainer() {
     gameContainer.remove()
 }
 
-function hideGameContainer() {
-    let gameContainer = document.getElementById('game-container')
-    gameContainer.style.display = 'none'
-}
-
-function showGameContainer() {
-    let gameContainer = document.getElementById('game-container')
-    gameContainer.style.display = 'flex'
-}
-
 function createCurrentTurnElement(div) {
     let span = document.createElement('span')
     span.id = 'current-turn'
     div.appendChild(span)
-}
-
-function removeCurrentTurnElement() {
-    let currTurn = document.getElementById('current-turn')
-    currTurn.style.display = 'none'
 }
 
 function createMainMenuButton(div) {
@@ -286,6 +271,14 @@ function createMainMenuButton(div) {
     button.textContent = 'Return to Main Menu'
     button.addEventListener('click', showMainButtons)
     div.appendChild(button)
+}
+
+function hideMainMenuButtons() {
+    document.getElementById('buttons-inputs').style.display = 'none'
+}
+
+function showMainMenuButtons() {
+    document.getElementById('buttons-inputs').style.display = 'flex'
 }
 
 function createNewGridContainer(mainDiv) {
@@ -320,26 +313,22 @@ function createNewGrid(mainDiv, div) {
     document.getElementById('main').append(mainDiv)
 }
 
-function hideMainButtons() {
-    document.getElementById('buttons-inputs').style.display = 'none'
+function showMainButtons() {
+    if (!gameActive) {
+        removeGameFinishedElement()
+        removeRecordsTable()
+    }
+    if (gameActive) {
+        removeGameContainer()
+        setCursorDefault()
+    }
+    drawRecordsTable()
+    showMainMenuButtons()
+    showRecordsTable()
 }
 
 function hideRecordsTable() {
     document.getElementById('records-container').style.display = 'none'
-}
-
-function showMainButtons() {
-    if (!gameActive) {
-        document.getElementById('winner-container').remove()
-        removeRecordsTable()
-    }
-    if (gameActive) {
-        document.getElementById('game-container').remove()
-        setCursorDefault()
-    }
-    drawRecordsTable()
-    document.getElementById('buttons-inputs').style.display = 'flex'
-    document.getElementById('records-container').style.display = 'flex'
 }
 
 function showRecordsTable() {
@@ -384,5 +373,6 @@ function createGameFinishedElement(text) {
 }
 
 function removeGameFinishedElement() {
-    document.getElementById('winner-container').remove()
+    let element = document.getElementById('winner-container')
+    element.remove()
 }
