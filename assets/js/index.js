@@ -19,6 +19,8 @@ let gameActive
 let currentPlayer
 let gameState
 
+// Game start functions here
+
 function startNewGame() {
     gameState = new Array(9).fill('')
     player1.name = player1Input.value
@@ -42,7 +44,8 @@ function startPlayAgain() {
     startGameLogic()
 }
 
-// Game logic
+// Game logic here
+
 let pointer = document.getElementById('main')
 
 function setCursorO() {
@@ -209,39 +212,11 @@ function setLocalStorageGamesPlus() {
     }
 }
 
-
 function getWinRate(wins, games) {
     return (((100 * wins) / games).toFixed(2) + '%')
 }
 
-function drawRecordsTable() {
-    let localStorage = window.localStorage
-    let usersObjArray = JSON.parse(localStorage.getItem('users'))
-
-    let div = document.createElement('div')
-    div.id = 'records-table'
-
-    if (localStorage.getItem('users')) {
-        for (let i = 0; i < usersObjArray.length; i++) {
-            let span = document.createElement('span')
-            span.className = 'user record'
-            span.textContent = `User: ${usersObjArray[i].username}, Games: ${usersObjArray[i].games}, Wins: ${usersObjArray[i].wins}, Winrate: ${usersObjArray[i].winrate}`
-            div.appendChild(span)
-            if (i === 9) {
-                break
-            }
-        }
-    }
-    document.getElementById('records-container').appendChild(div)
-}
-
-function removeRecordsTable() {
-    document.getElementById('records-table').remove()
-}
-
 // Game logic ^
-
-
 
 // Creating UI here
 
@@ -375,4 +350,29 @@ function createGameFinishedElement(text) {
 function removeGameFinishedElement() {
     let element = document.getElementById('winner-container')
     element.remove()
+}
+
+function drawRecordsTable() {
+    let localStorage = window.localStorage
+    let usersObjArray = JSON.parse(localStorage.getItem('users'))
+
+    let div = document.createElement('div')
+    div.id = 'records-table'
+
+    if (localStorage.getItem('users')) {
+        for (let i = 0; i < usersObjArray.length; i++) {
+            let span = document.createElement('span')
+            span.className = 'user record'
+            span.textContent = `User: ${usersObjArray[i].username}, Games: ${usersObjArray[i].games}, Wins: ${usersObjArray[i].wins}, Winrate: ${usersObjArray[i].winrate}`
+            div.appendChild(span)
+            if (i === 9) {
+                break
+            }
+        }
+    }
+    document.getElementById('records-container').appendChild(div)
+}
+
+function removeRecordsTable() {
+    document.getElementById('records-table').remove()
 }
