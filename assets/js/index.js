@@ -24,7 +24,7 @@ function startNewGame() {
     player1.name = player1Input.value
     player2.name = player2Input.value
 
-    if (player1.name != null && player2.name != null) {
+    if ((player1.name != null && player2.name != null) && (player1.name != player2.name)) {
         createNewGameContainer()
         hideMainMenuButtons()
         hideRecordsContainer()
