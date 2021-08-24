@@ -2,6 +2,8 @@ drawRecordsTable()
 
 document.getElementById('start-game').addEventListener('click', startNewGame)
 
+document.getElementById('search-player-btn').addEventListener('click', drawUserGamesTable)
+
 let player1Input = document.getElementById('player1')
 let player2Input = document.getElementById('player2')
 
@@ -104,16 +106,17 @@ function isGameStateEmpty() {
 function setNobodyWin() {
     let text = 'Nobody!'
     gameActive = false
+    gameState = new Array(9).fill('')
     removeMoveListener()
     setCursorDefault()
     createGameFinishedElement(text)
-    gameState = new Array(9).fill('')
-    showRecordsTable()
+    showRecordsContainer()
 }
 
 function checkPlayerWin(symbol) {
     let arr = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
     let winner = false
+    let nobody = false
 
     arr.forEach(function (subArr) {
         let counter = 0;
@@ -128,8 +131,9 @@ function checkPlayerWin(symbol) {
     });
 
     if (!winner && isGameStateEmpty()) {
+        nobody = true
         setNobodyWin()
-        setLocalStorageGamesPlus()
+        setLocalStorageGamesPlus(nobody)
         drawRecordsTable()
         return
     }
@@ -152,25 +156,23 @@ function checkPlayerWin(symbol) {
 
     if (winner && currentPlayer === player1.name) {
         gameActive = false
-        gameState = new Array(9).fill('')
         removeMoveListener()
         setCursorDefault()
         createGameFinishedElement(text)
         setLocalStorageGamesPlus()
         drawRecordsTable()
-        showRecordsTable()
+        showRecordsContainer()
         return
     }
 
     if (winner && currentPlayer === player2.name) {
         gameActive = false
-        gameState = new Array(9).fill('')
         removeMoveListener()
         setCursorDefault()
         createGameFinishedElement(text)
         setLocalStorageGamesPlus()
         drawRecordsTable()
-        showRecordsTable()
+        showRecordsContainer()
         return
     }
 }
@@ -180,35 +182,53 @@ function setNextTurn(player) {
     currTurn.textContent = 'Current turn: ' + player
 }
 
-function setLocalStorageGamesPlus() {
+function setLocalStorageGamesPlus(nobody) {
     let localStorage = window.localStorage
 
     if (!localStorage.getItem('users')) {
         localStorage.setItem('users', JSON.stringify([]))
     }
 
+    if (!localStorage.getItem('gameHistory')) {
+        localStorage.setItem('gameHistory', JSON.stringify([]))
+    }
+
     if (localStorage.length > 0) {
         let usersObjArray = JSON.parse(localStorage.users)
+        let usersGamesArray = JSON.parse(localStorage.gameHistory)
+
         if (!usersObjArray.find(el => el.username === player1.name)) {
             usersObjArray.push({ username: player1.name, games: 0, wins: 0, winrate: 0 })
         }
         if (!usersObjArray.find(el => el.username === player2.name)) {
             usersObjArray.push({ username: player2.name, games: 0, wins: 0, winrate: 0 })
         }
+        // Making users stats
         for (let i = 0; i < usersObjArray.length; i++) {
-            if (usersObjArray[i].username === currentPlayer) {
-                usersObjArray[i].wins += 1
-            }
             if (usersObjArray[i].username === player1.name) {
+                if (usersObjArray[i].username === currentPlayer) {
+                    usersObjArray[i].wins += 1
+                }
                 usersObjArray[i].games += 1
                 usersObjArray[i].winrate = getWinRate(usersObjArray[i].wins, usersObjArray[i].games)
             }
             if (usersObjArray[i].username === player2.name) {
+                if (usersObjArray[i].username === currentPlayer) {
+                    usersObjArray[i].wins += 1
+                }
                 usersObjArray[i].games += 1
                 usersObjArray[i].winrate = getWinRate(usersObjArray[i].wins, usersObjArray[i].games)
             }
         }
+        // Making users game history
+        if (!nobody) {
+            usersGamesArray.push({ player1: player1.name, player2: player2.name, winner: currentPlayer, date: new Date() })
+        }
+        if (nobody) {
+            usersGamesArray.push({ player1: player1.name, player2: player2.name, winner: 'Nobody', date: new Date() })
+        }
         localStorage.setItem('users', JSON.stringify(usersObjArray))
+        localStorage.setItem('gameHistory', JSON.stringify(usersGamesArray))
     }
 }
 
@@ -249,11 +269,15 @@ function createMainMenuButton(div) {
 }
 
 function hideMainMenuButtons() {
-    document.getElementById('buttons-inputs').style.display = 'none'
+    let cl = document.getElementById('buttons-inputs').classList
+    cl.add('hidden')
+    cl.remove('flex')
 }
 
 function showMainMenuButtons() {
-    document.getElementById('buttons-inputs').style.display = 'flex'
+    let cl = document.getElementById('buttons-inputs').classList
+    cl.remove('hidden')
+    cl.add('flex')
 }
 
 function createNewGridContainer(mainDiv) {
@@ -299,15 +323,19 @@ function showMainButtons() {
     }
     drawRecordsTable()
     showMainMenuButtons()
-    showRecordsTable()
+    showRecordsContainer()
 }
 
 function hideRecordsContainer() {
-    document.getElementById('records-container').style.display = 'none'
+    let cl = document.getElementById('records-container').classList
+    cl.remove("flex")
+    cl.add("hidden")
 }
 
-function showRecordsTable() {
-    document.getElementById('records-container').style.display = 'flex'
+function showRecordsContainer() {
+    let cl = document.getElementById('records-container').classList
+    cl.add("flex")
+    cl.remove("hidden")
 }
 
 function createGameFinishedElement(text) {
@@ -369,10 +397,115 @@ function drawRecordsTable() {
                 break
             }
         }
+        document.getElementById('records-container').appendChild(div)
     }
-    document.getElementById('records-container').appendChild(div)
 }
 
 function removeRecordsTable() {
     document.getElementById('records-table').remove()
+}
+
+function drawUserGamesTable() {
+    let user = document.getElementById('search-player').value
+
+    let localStorage = window.localStorage
+    let gamesObjArray = JSON.parse(localStorage.getItem('gameHistory'))
+
+    let div = document.createElement('div')
+    div.id = 'games-history'
+
+    if (localStorage.getItem('gameHistory') && user !== null) {
+        let userExist = gamesObjArray.some(item => (item.player1 === user || item.player2 === user) ? true : false)
+        if (userExist) {
+            hideRecordsContainer()
+            hideMainMenuButtons()
+            let button = document.createElement('button')
+            let buttonClasses = button.classList
+            buttonClasses.add('close_games_table')
+            button.textContent = 'Close'
+
+            button.type = 'button'
+            button.addEventListener('click', removeUserGamesTable)
+
+            let table = document.createElement('table')
+            table.className = 'games_table'
+
+            let tr = document.createElement('tr')
+
+            let tdGame = document.createElement('td')
+            tdGame.textContent = 'Game'
+
+            let tdPlayer1 = document.createElement('td')
+            tdPlayer1.textContent = 'Player 1'
+
+            let tdPlayer2 = document.createElement('td')
+            tdPlayer2.textContent = 'Player 2'
+
+            let tdWinner = document.createElement('td')
+            tdWinner.textContent = 'Winner'
+
+            let tdDate = document.createElement('td')
+            tdDate.textContent = 'Date'
+
+            tr.appendChild(tdGame)
+            tr.appendChild(tdPlayer1)
+            tr.appendChild(tdPlayer2)
+            tr.appendChild(tdWinner)
+            tr.appendChild(tdDate)
+
+            table.appendChild(tr)
+
+            let gamesArray = gamesObjArray.filter(item => item.player1 === user || item.player2 === user ? item : null)
+            gamesArray.forEach((item, index) => {
+                let tr = document.createElement('tr')
+
+                let tdGame = document.createElement('td')
+                tdGame.textContent = index
+
+                let tdPlayer1 = document.createElement('td')
+                tdPlayer1.textContent = item.player1
+
+                let tdPlayer2 = document.createElement('td')
+                tdPlayer2.textContent = item.player2
+
+                let tdWinner = document.createElement('td')
+                tdWinner.textContent = item.winner
+
+                let tdDate = document.createElement('td')
+                tdDate.textContent = item.date
+
+                tr.appendChild(tdGame)
+                tr.appendChild(tdPlayer1)
+                tr.appendChild(tdPlayer2)
+                tr.appendChild(tdWinner)
+                tr.appendChild(tdDate)
+
+                table.appendChild(tr)
+                // let span = document.createElement('span')
+                // span.className = 'usergame'
+                // span.textContent = `Game ${index}: ${item.player1} vs ${item.player2}, Winner: ${item.winner}, Date: ${item.date}`
+                // div.appendChild(span)
+            })
+            div.appendChild(table)
+            div.appendChild(button)
+            document.getElementById('main').appendChild(div)
+        }
+        else {
+            alert('User not exist')
+        }
+    }
+    // Apply to button & input form, which allow find userGames if username userExist, if user doesnt exist (alert('User not found!'))
+}
+
+function removeUserGamesTable() {
+    console.log('show')
+    showMainMenuButtons()
+    showRecordsContainer()
+    document.getElementById('games-history').remove()
+
+    let records = document.getElementById('records-container').classList
+    records.toggle('hidden')
+
+    let mainButtons = document.getElementById('buttons-inputs').classList
+    mainButtons.toggle('hidden')
 }
